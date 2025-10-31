@@ -1,0 +1,26 @@
+{
+  "name": "E-commerce Freshify App",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@jsr/supabase__supabase-js": "^2.49.8",
+    "@vitejs/plugin-react": "*",
+    "hono": "*",
+    "path": "*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react-swc": "^3.10.2",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  }
+}

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freshify - History Viewer & Recovery Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #1a202c;
+      margin-bottom: 8px;
+      font-size: 32px;
+    }
+    .subtitle {
+      color: #718096;
+      margin-bottom: 24px;
+      font-size: 16px;
+    }
+    .section {
+      margin-bottom: 32px;
+      padding: 24px;
+      background: #f7fafc;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+    }
+    h2 {
+      color: #2d3748;
+      margin-bottom: 16px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon {
+      font-size: 24px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-right: 12px;
+      margin-bottom: 12px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button.secondary {
+      background: #48bb78;
+    }
+    button.danger {
+      background: #f56565;
+    }
+    button.warning {
+      background: #ed8936;
+    }
+    .output {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 16px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .output.empty {
+      color: #a0aec0;
+      font-style: italic;
+    }
+    .alert {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border-left: 4px solid;
+    }
+    .alert.success {
+      background: #c6f6d5;
+      border-color: #48bb78;
+      color: #22543d;
+    }
+    .alert.warning {
+      background: #feebc8;
+      border-color: #ed8936;
+      color: #7c2d12;
+    }
+    .alert.info {
+      background: #bee3f8;
+      border-color: #4299e1;
+      color: #2c5282;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      color: #718096;
+      font-size: 14px;
+    }
+    .user-info {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 2px solid #667eea;
+      margin-bottom: 16px;
+    }
+    .user-info strong {
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Freshify History Viewer</h1>
+    <p class="subtitle">Tool untuk melihat dan restore history pesanan yang tersimpan di localStorage</p>
+
+    <!-- Current User Info -->
+    <div class="section">
+      <h2><span class="icon">👤</span> User Saat Ini</h2>
+      <div id="currentUserInfo"></div>
+      <button onclick="checkCurrentUser()">🔄 Refresh User Info</button>
+    </div>
+
+    <!-- View All History -->
+    <div class="section">
+      <h2><span class="icon">📊</span> Semua History di Browser</h2>
+      <p style="color: #718096; margin-bottom: 16px;">
+        Lihat semua data pesanan yang tersimpan di localStorage browser ini
+      </p>
+      <button onclick="viewAllHistory()">👀 Tampilkan Semua History</button>
+      <button class="secondary" onclick="viewDetailedHistory()">📝 History Detail (JSON)</button>
+      <div id="allHistoryStats"></div>
+      <div id="allHistoryOutput" class="output empty">Klik tombol di atas untuk melihat history...</div>
+    </div>
+
+    <!-- Migration Tool -->
+    <div class="section">
+      <h2><span class="icon">🔄</span> Recovery & Migration Tool</h2>
+      <div class="alert warning">
+        ⚠️ <strong>Penting:</strong> Gunakan tool ini jika history Anda hilang setelah logout/login
+      </div>
+      <p style="color: #718096; margin-bottom: 16px;">
+        Tool ini akan mengumpulkan semua pesanan dari berbagai user ID lama dan menggabungkannya ke akun Anda yang sekarang.
+      </p>
+      <button class="warning" onclick="migrateHistory()">🚀 Migrate & Gabungkan Semua History</button>
+      <button class="secondary" onclick="exportBackup()">💾 Export Backup (JSON)</button>
+      <div id="migrationOutput" class="output empty">Hasil migration akan muncul di sini...</div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="section" style="border-color: #fc8181;">
+      <h2><span class="icon">⚠️</span> Danger Zone</h2>
+      <div class="alert warning">
+        ⚠️ Aksi di bawah ini tidak bisa di-undo! Pastikan sudah backup data jika diperlukan.
+      </div>
+      <button class="danger" onclick="clearAllHistory()">🗑️ Hapus SEMUA History</button>
+      <button class="danger" onclick="clearCurrentUserHistory()">🗑️ Hapus History User Saat Ini</button>
+    </div>
+  </div>
+
+  <script>
+    // Check current logged in user
+    function checkCurrentUser() {
+      try {
+        const userStr = localStorage.getItem('freshify_user');
+        const sessionStr = localStorage.getItem('freshify_session');
+        const output = document.getElementById('currentUserInfo');
+
+        if (!userStr) {
+          output.innerHTML = '<div class="alert warning">⚠️ Tidak ada user yang login. Silakan login dulu di aplikasi Freshify.</div>';
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        const session = sessionStr ? JSON.parse(sessionStr) : null;
+
+        output.innerHTML = `
+          <div class="user-info">
+            <p><strong>User ID:</strong> ${user.id || 'N/A'}</p>
+            <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+            <p><strong>Session:</strong> ${session ? '✅ Active' : '❌ Tidak ada'}</p>
+          </div>
+        `;
+      } catch (error) {
+        document.getElementById('currentUserInfo').innerHTML = `<div class="alert warning">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // View all history in localStorage
+    function viewAllHistory() {
+      try {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('freshify_orders_'));
+        const output = document.getElementById('allHistoryOutput');
+        const statsDiv = document.getElementById('allHistoryStats');
+        
+        if (keys.length === 0) {
+          output.className = 'output empty';
+          output.textContent = '❌ Tidak ada history pesanan yang ditemukan di browser ini.';
+          statsDiv.innerHTML = '';
+          return;
+        }
+
+        let totalOrders = 0;
+        let totalAmount = 0;
+        let result = `📦 Ditemukan ${keys.length} user dengan history pesanan:\n\n`;
+
+        keys.forEach((key, index) => {
+          const userId = key.replace('freshify_orders_', '');
+          const orders = JSON.parse(localStorage.getItem(key));
+          totalOrders += orders.length;
+
+          result += `${index + 1}. USER ID: ${userId}\n`;
+          result += `   Total Orders: ${orders.length}\n`;
+
+          orders.forEach((order, idx) => {
+            const date = new Date(order.date).toLocaleDateString('id-ID');
+            const amount = order.total || 0;
+            totalAmount += amount;
+            result += `   ${idx + 1}. Order #${order.id.substring(0, 12)}...\n`;
+            result += `      Tanggal: ${date}\n`;
+            result += `      Total: Rp ${amount.toLocaleString('id-ID')}\n`;
+            result += `      Items: ${order.items.length} produk\n`;
+          });
+          result += '\n';
+        });
+
+        // Show stats
+        statsDiv.innerHTML = `
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-value">${keys.length}</div>
+              <div class="stat-label">Total User IDs</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${totalOrders}</div>
+              <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">Rp ${(totalAmount / 1000).toFixed(0)}k</div>
+              <div class="stat-label">Total Belanja</div>
+            </div>
+          </div>
+        `;
+
+        output.className = 'output';
+        output.textContent = result;
+      } catch (error) {
+        document.getElementById('allHistoryOutput').textContent = `❌ Error: ${error.message}`;
+      }
+    }
+
+    // View detailed JSON
+    function viewDetailedHistory() {
+      try {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('freshify_orders_'));
+        const output = document.getElementById('allHistoryOutput');
+        
+        if (keys.length === 0) {
+          output.className = 'output empty';
+          output.textContent = '❌ Tidak ada history yang ditemukan.';
+          return;
+        }
+
+        const allData = {};
+        keys.forEach(key => {
+          const userId = key.replace('freshify_orders_', '');
+          allData[userId] = JSON.parse(localStorage.getItem(key));
+        });
+
+        output.className = 'output';
+        output.textContent = JSON.stringify(allData, null, 2);
+      } catch (error) {
+        document.getElementById('allHistoryOutput').textContent = `❌ Error: ${error.message}`;
+      }
+    }
+
+    // Migrate all history to current user
+    function migrateHistory() {
+      try {
+        const output = document.getElementById('migrationOutput');
+        
+        // Check if user is logged in
+        const userStr = localStorage.getItem('freshify_user');
+        if (!userStr) {
+          output.className = 'output';
+          output.textContent = '❌ ERROR: Tidak ada user yang login!\n\nSilakan login dulu di aplikasi Freshify, lalu kembali ke sini.';
+          return;
+        }
+
+        const currentUser = JSON.parse(userStr);
+        const currentUserId = currentUser.id;
+
+        // Get all order keys
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('freshify_orders_'));
+        
+        if (keys.length === 0) {
+          output.className = 'output';
+          output.textContent = '❌ Tidak ada history yang ditemukan untuk di-migrate.';
+          return;
+        }
+
+        // Collect all orders
+        const allOrders = [];
+        const orderIds = new Set();
+        
+        keys.forEach(key => {
+          const orders = JSON.parse(localStorage.getItem(key));
+          orders.forEach(order => {
+            // Deduplicate by order ID
+            if (!orderIds.has(order.id)) {
+              orderIds.add(order.id);
+              allOrders.push(order);
+            }
+          });
+        });
+
+        // Sort by date (newest first)
+        allOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        // Save to current user
+        localStorage.setItem(`freshify_orders_${currentUserId}`, JSON.stringify(allOrders));
+
+        // Calculate totals
+        const totalAmount = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+
+        let result = '✅ MIGRATION BERHASIL!\n\n';
+        result += `📊 Summary:\n`;
+        result += `- Total Orders Digabungkan: ${allOrders.length}\n`;
+        result += `- Total Belanja: Rp ${totalAmount.toLocaleString('id-ID')}\n`;
+        result += `- User ID Sekarang: ${currentUserId}\n`;
+        result += `- Email: ${currentUser.email}\n\n`;
+        result += `🎉 Semua history sudah digabungkan ke akun Anda!\n`;
+        result += `\n💡 REFRESH halaman aplikasi Freshify untuk melihat hasilnya.`;
+
+        output.className = 'output';
+        output.textContent = result;
+
+        // Show success alert
+        setTimeout(() => {
+          alert('✅ Migration berhasil!\n\nRefresh halaman aplikasi Freshify untuk melihat semua history Anda.');
+        }, 500);
+
+      } catch (error) {
+        document.getElementById('migrationOutput').textContent = `❌ Error: ${error.message}\n\nStack: ${error.stack}`;
+      }
+    }
+
+    // Export backup
+    function exportBackup() {
+      try {
+        const backup = {};
+        Object.keys(localStorage)
+          .filter(key => key.startsWith('freshify_'))
+          .forEach(key => {
+            backup[key] = localStorage.getItem(key);
+          });
+
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `freshify-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        alert('✅ Backup berhasil di-download!\n\nFile tersimpan di folder Downloads Anda.');
+      } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+      }
+    }
+
+    // Clear all history
+    function clearAllHistory() {
+      if (!confirm('⚠️ PERINGATAN!\n\nIni akan MENGHAPUS SEMUA history pesanan dari SEMUA user di browser ini.\n\nApakah Anda yakin?')) {
+        return;
+      }
+
+      if (!confirm('⚠️ KONFIRMASI TERAKHIR!\n\nData yang dihapus TIDAK BISA dikembalikan!\n\nLanjutkan menghapus?')) {
+        return;
+      }
+
+      try {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('freshify_orders_'));
+        keys.forEach(key => localStorage.removeItem(key));
+        
+        alert(`✅ Berhasil menghapus ${keys.length} user history.\n\nRefresh halaman untuk melihat perubahan.`);
+        viewAllHistory();
+      } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+      }
+    }
+
+    // Clear current user history only
+    function clearCurrentUserHistory() {
+      const userStr = localStorage.getItem('freshify_user');
+      if (!userStr) {
+        alert('❌ Tidak ada user yang login.');
+        return;
+      }
+
+      if (!confirm('⚠️ Hapus history user saat ini?\n\nData yang dihapus TIDAK BISA dikembalikan!')) {
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userStr);
+        localStorage.removeItem(`freshify_orders_${user.id}`);
+        
+        alert(`✅ History untuk ${user.email} berhasil dihapus.\n\nRefresh aplikasi untuk melihat perubahan.`);
+        checkCurrentUser();
+      } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+      }
+    }
+
+    // Auto-check user on load
+    window.addEventListener('DOMContentLoaded', () => {
+      checkCurrentUser();
+      viewAllHistory();
+    });
+  </script>
+</body>
+</html>
