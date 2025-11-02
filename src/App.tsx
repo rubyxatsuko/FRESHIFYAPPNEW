@@ -19,6 +19,7 @@ import {
   addToCart,
   updateCartQuantity,
   removeFromCart,
+  clearCart,
   createOrder,
   getOrders,
   getWeeklyConsumption,
@@ -261,6 +262,9 @@ export default function App() {
 
         const weeklyData = await getWeeklyConsumption(userId);
         setWeeklyCalories(weeklyData);
+
+        // Clear cart after successful order
+        await clearCart(userId);
 
         // Set completed order and navigate to payment success
         setCompletedOrder(order);
