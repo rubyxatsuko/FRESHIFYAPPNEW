@@ -179,7 +179,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
           <div className="text-center mb-6 sm:mb-8">
             <Leaf className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
-              <img src="././public/logo1.png" alt="Freshify logo" />
+              <img src="/logo1.png" alt="Freshify logo" />
             </div>
             <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 mb-2 text-2xl sm:text-3xl font-bold">
               Freshify

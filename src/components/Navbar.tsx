@@ -61,7 +61,7 @@ export function Navbar({
             >
               <Leaf className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center group-hover:bg-green-700 transition">
-                <img src="././public/logo1.png" alt="Freshify logo" />
+                <img src="/logo1.png" alt="Freshify logo" />
               </div>
               <span className="text-lg sm:text-xl bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent font-bold">
                 Freshify

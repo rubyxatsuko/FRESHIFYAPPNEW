@@ -11,7 +11,7 @@ import { products as localProducts } from "../data/products";
  */
 
 const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server`;
-const USE_MOCK = false; // Set to false when backend is ready
+const USE_MOCK = true; // Set to false when backend is ready
 
 // Helper to get headers with auth token
 async function getHeaders(): Promise<Record<string, string>> {
